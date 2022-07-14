@@ -118,14 +118,13 @@ resources: # CloudFormation template syntax from here on.
         AttributeDefinitions:
           - AttributeName: user_id
             AttributeType: S
-          - AttributeName: available_time
+          - AttributeName: last_updated
             AttributeType: S
-          - AttributeName: time_updated_at
-            AttributeType: S
-          # Might add more table attributes if we need to store them here?
         KeySchema:
           - AttributeName: user_id
             KeyType: HASH
+          - AttributeName: last_updated
+            AttributeType: S
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
@@ -133,26 +132,16 @@ resources: # CloudFormation template syntax from here on.
 functions:
   authorizerFunc: 
     handler: authorizer.auth
-  getAvailableTime:
-    handler: handler.getAvailableTime
+  getUserInfo:
+    handler: handler.user_info_handler
     events:
       - http:
-          path: available-time
+          path: user-info
           method: post
           #authorizer: none needed, just retrieving info
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-              - Access-Control-Allow-Origin
-              - Access-Control-Allow-Credentials
+          cors: true
   addTime:
-    handler: handler.addTime
+    handler: handler.add_time
     events:
       - http:
           path: add-time
@@ -160,19 +149,9 @@ functions:
           #authorizer:
             #name: authorizerFunc
             #resultTtlInSeconds: 0 # Don't cache the policy or other tasks will fail!
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-              - Access-Control-Allow-Origin
-              - Access-Control-Allow-Credentials
+          cors: true
   deductTime:
-    handler: handler.deductTime
+    handler: handler.deduct_time
     events:
       - http:
           path: deduct-time
@@ -180,14 +159,4 @@ functions:
           #authorizer:
             #name: authorizerFunc
             #resultTtlInSeconds: 0 # Don't cache the policy or other tasks will fail!
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-              - Access-Control-Allow-Origin
-              - Access-Control-Allow-Credentials
+          cors: true
